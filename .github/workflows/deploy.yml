@@ -18,6 +18,14 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Backup current version on VM
+        run: |
+          az vm run-command invoke \
+            --resource-group rg-ticket-insights \
+            --name vm-portfolio-lab \
+            --command-id RunShellScript \
+            --scripts "sudo cp /var/www/html/index.html /var/www/html/index.html.previous 2>/dev/null || true"
+
       - name: Deploy index.html to VM
         run: |
           ENCODED_CONTENT=$(base64 -w 0 site/index.html)

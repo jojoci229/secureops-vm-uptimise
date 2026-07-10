@@ -1,0 +1,27 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Tape "yes" pour confirmer le rollback vers la version précédente'
+        required: true
+        default: 'no'
+
+jobs:
+  rollback:
+    if: github.event.inputs.confirm == 'yes'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Restore previous version on VM
+        run: |
+          az vm run-command invoke \
+            --resource-group rg-ticket-insights \
+            --name vm-portfolio-lab \
+            --command-id RunShellScript \
+            --scripts "sudo cp /var/www/html/index.html.previous /var/www/html/index.html && sudo systemctl reload nginx"
